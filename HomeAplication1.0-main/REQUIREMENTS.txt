@@ -1,0 +1,72 @@
+    def __init__(self, parent=None):
+        super(MainWindow, self).__init__(parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setWindowFlags(Qt.FramelessWindowHint)
+        self.setupUi(self)
+        self.show()
+        self.center()
+        self.ui = Ui_MainWindow()
+        global window_obj
+        window_obj = self.ui
+
+        # SHADOWS FOR FRAMES
+        set_shadow.sets(self)
+
+        # NOTIFICATION IF ACTION CLICKED
+        tray.messageClicked.connect(lambda: messageClicked(self))
+        action_hide.triggered.connect(lambda: self.hide())
+        action_show.triggered.connect(lambda: self.showNormal())
+
+        # FONT FOR MENU TABLE
+        self.font = QFont()
+        self.font.setFamily(u"Bahnschrift Light Condensed")
+        self.font.setPointSize(14)
+
+        # CONFIGURING THE TABLE
+        self.table = self.tableWidget
+        self.table.verticalHeader().setVisible(False)
+        self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.table.verticalHeader().setDefaultSectionSize(50)
+        self.table.setFont(self.font)
+        self.table.horizontalHeaderItem(0).setFlags(QtCore.Qt.ItemIsEnabled|QtCore.Qt.ItemIsSelectable)
+        self.table.horizontalHeaderItem(2).setFlags(QtCore.Qt.ItemIsEnabled|QtCore.Qt.ItemIsSelectable)
+        self.table.setStyleSheet("QWidget { color: #fffff8; border-radius:0px; } QHeaderView::section { background-color: rgb(53, 53, 53); border:none; width:45px; height: 50px; border-radius:0px; } QTableWidget { gridline-color: #fffff8; border-radius:0px; border-radius:0px; } QTableWidget QTableCornerButton::section { background-color: #646464; border-radius:0px; } QTableView:item { border-bottom: 0.5px solid qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0 rgba(0, 0, 0, 0), stop:0.45677 rgba(0, 0, 0, 0), stop:0.479846 rgba(255, 255, 255, 255), stop:0.50571 rgba(239, 236, 55, 0), stop:1 rgba(239, 236, 55, 0)); border-radius:0px; } QTableView::item:selected{ background-color:rgba(255, 255, 255,30); color: rgb(255, 255, 255); }")
+        self.extrato_cartao_0.setStyleSheet("QWidget { color: #fffff8; border-radius:0px; } QHeaderView::section { background-color: rgb(53, 53, 53); border:none; width:45px; height: 50px; border-radius:0px; } QTableWidget { gridline-color: #fffff8; border-radius:0px; border-radius:0px; } QTableWidget QTableCornerButton::section { background-color: #646464; border-radius:0px; } QTableView:item { border-bottom: 0.5px solid qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0 rgba(0, 0, 0, 0), stop:0.45677 rgba(0, 0, 0, 0), stop:0.479846 rgba(255, 255, 255, 255), stop:0.50571 rgba(239, 236, 55, 0), stop:1 rgba(239, 236, 55, 0)); border-radius:0px; } QTableView::item:selected{ background-color:rgba(255, 255, 255,30); color: rgb(255, 255, 255); }")
+        self.table_faturas_ind.setStyleSheet("QWidget { color: #fffff8; border-radius:0px; } QHeaderView::section { background-color: rgb(53, 53, 53); border:none; width:45px; height: 50px; border-radius:0px; } QTableWidget { gridline-color: #fffff8; border-radius:0px; border-radius:0px; } QTableWidget QTableCornerButton::section { background-color: #646464; border-radius:0px; } QTableView:item { border-bottom: 0.5px solid qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0 rgba(0, 0, 0, 0), stop:0.45677 rgba(0, 0, 0, 0), stop:0.479846 rgba(255, 255, 255, 255), stop:0.50571 rgba(239, 236, 55, 0), stop:1 rgba(239, 236, 55, 0)); border-radius:0px; } QTableView::item:selected{ background-color:rgba(255, 255, 255,30); color: rgb(255, 255, 255); }")
+        self.table.horizontalHeader().sectionClicked.connect(self.filtro_table_header)
+
+        # Stylesheet for Vertical ScrollBar
+
+        # HIDDEN TABLE COLUMNS
+        self.table.setColumnHidden(1, True)
+        self.table.setColumnHidden(2, True)
+        self.table.setColumnHidden(11, True)
+
+        self.table.setColumnHidden(4, True)
+
+        # CONFIGURING ACCOUNT IF CREDIT CARD EXISTS
+        self.comboBox_24.currentIndexChanged.connect(lambda: home_db_fun.mainpage._event_change_stakecard(self))
+        self.comboBox_25.currentIndexChanged.connect(lambda: home_db_fun.mainpage._categorias_entra_said(self))
+        # ... (remaining code remains unchanged)
+
+        # PDF VIEWER
+        self.listWidget_2.itemDoubleClicked.connect(lambda: home_db_fun.mainpage.open_pdf(self))
+        # HIDDEN TABLE COLUMNS
+        # ... (remaining code remains unchanged)
+
+        # COLUMNS SIZE
+        # ... (remaining code remains unchanged)
+
+        # CONFIGURING EVENTS FILTER
+        self.pushButton_8.installEventFilter(self)
+        self.pushButton_9.installEventFilter(self)
+        # ... (remaining code remains unchanged)
+        
+        # EVENTS APP
+        self.bar_window.installEventFilter(self)
+
+        # SPREADSHEETS MODELS
+        self.pushButton_29.installEventFilter(self)
+        self.pushButton_30.installEventFilter(self)
+        self.create_xlsx_file.installEventFilter(self)
