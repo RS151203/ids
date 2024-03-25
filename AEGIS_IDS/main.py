@@ -1,3 +1,5 @@
+import os
+import subprocess
 import sys
 from PySide2 import QtCore, QtGui, QtWidgets
 from PySide2.QtCore import (QCoreApplication, QPropertyAnimation, QDate, QDateTime, QMetaObject, QObject, QPoint, QRect,
@@ -5,8 +7,9 @@ from PySide2.QtCore import (QCoreApplication, QPropertyAnimation, QDate, QDateTi
 from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont, QFontDatabase, QIcon, QKeySequence,
                            QLinearGradient, QPalette, QPainter, QPixmap, QRadialGradient)
 from PySide2.QtWidgets import *
+from email_validator import validate_email, EmailNotValidError
 from gui import Ui_MainWindow
-from user_auth import create_connection, check_user
+from user_auth import create_connection, check_user, change_user_credentials, add_email, get_email, delete_email
 
 WINDOW_SIZE = 0
 TOGGLE_STATUS = 80
@@ -44,11 +47,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.menu_button.clicked.connect(self.toggleMenu)
         self.home_button.clicked.connect(lambda: self.stackedWidget_2.setCurrentIndex(0))
         self.settings_button.clicked.connect(lambda: self.stackedWidget_2.setCurrentIndex(1))
-        self.logout_button.clicked.connect(self.logging_out) #lambda needs to add bracket after function name
+        self.logout_button.clicked.connect(self.logging_out)  # lambda needs to add bracket after function name
+        self.logs_button.clicked.connect(self.open_log_folder)
         self.home_button.clicked.connect(lambda: self.page_indicator.move(0, self.home_button.pos().y()))
         self.settings_button.clicked.connect(lambda: self.page_indicator.move(0, self.settings_button.pos().y()))
         self.exit_button.clicked.connect(self.close)
-        #Time
+
+        # Time
         # Create a timer to update the label every second
         self.timer = QTimer()
         self.timer.timeout.connect(self.updateTime)
@@ -56,6 +61,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Call updateTime initially to set the label to current time
         self.updateTime()
+
+        # SETTINGS
+        self.update_user_config_button.clicked.connect(lambda: self.update_user_config(user=self.user_name_info.text()))
+        self.error_popup_2.hide()
+        self.cancel_error_popup_2.clicked.connect(lambda: self.error_popup_2.hide())
+        self.add_email_address_button_4.clicked.connect(self.email_add)
 
     def center(self):
         qr = self.frameGeometry()
@@ -74,9 +85,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if result:
             self.stackedWidget.setCurrentIndex(1)
+            self.stackedWidget_2.setCurrentIndex(0)
+            self.page_indicator.move(0, self.home_button.pos().y())
             self.user_name_info.setText(username)
+            self.current_username.setText(username)
+            self.email_address_area_4.setText(get_email(conn, username))
         else:
             self.show_error("Username or Password incorrect")
+
     def show_error(self, message):
         self.error_text.setText(message)
         self.error_popup_area.show()
@@ -139,6 +155,64 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.animation.start()
             TOGGLE_STATUS = 80
 
+    def update_user_config(self, user):
+        current_username = self.current_username.text()
+        current_password = self.current_password.text()
+        new_username = self.new_username.text()
+        new_password = self.new_password.text()
+
+        conn = create_connection("user.db")
+        if new_username or new_password:
+            result = check_user(conn, current_username, current_password)
+            if result:
+                username = change_user_credentials(conn, current_username, current_password, new_username, new_password)
+                self.current_username.setText(username)
+                self.user_name_info.setText(username)
+                self.email_address_area_4.setText(get_email(conn, username))
+                self.current_password.setText("")
+                self.new_username.setText("")
+                self.new_password.setText("")
+            else:
+                self.error_text_2.setText("Current Username or Password is incorrect.")
+                self.error_popup_2.show()
+                self.current_username.setText(user)
+                self.current_password.setText("")
+        else:
+            self.error_text_2.setText("Add new username or new password.")
+            self.error_popup_2.show()
+            self.current_username.setText(user)
+            self.current_password.setText("")
+
+    def email_add(self):
+        conn = create_connection("user.db")
+        emails = self.email_address_area_4.toPlainText().replace(" ", "")
+        if emails:
+            email_array = emails.split(",")
+            all_valid = True
+            for email in email_array:
+                try:
+                    validate_email(email)
+                except EmailNotValidError:
+                    all_valid = False
+                    break
+            if all_valid:
+                add_email(conn, username=self.current_username.text(), email=emails)
+                self.email_address_area_4.setText(get_email(conn, username=self.current_username.text()))
+            else:
+                self.error_text_2.setText("Email or Emails not valid.")
+                self.error_popup_2.show()
+                self.email_address_area_4.setText(get_email(conn, username=self.current_username.text()))
+        else:
+            delete_email(conn, username=self.current_username.text())
+            self.email_address_area_4.setText("")
+
+    def open_log_folder(self):
+        log_folder_path = r"C:\Aegis IDS\Log Files"
+
+        if not os.path.exists(log_folder_path):
+            os.makedirs(log_folder_path)
+
+        subprocess.Popen(f'explorer "{log_folder_path}"')
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
