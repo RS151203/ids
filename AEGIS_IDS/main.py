@@ -15,6 +15,15 @@ WINDOW_SIZE = 0
 TOGGLE_STATUS = 80
 
 
+def open_log_folder():
+    log_folder_path = r"C:\Aegis IDS\Log Files"
+
+    if not os.path.exists(log_folder_path):
+        os.makedirs(log_folder_path)
+
+    subprocess.Popen(f'explorer "{log_folder_path}"')
+
+
 class MainWindow(QMainWindow, Ui_MainWindow):
     stackSignal = Signal()
 
@@ -48,10 +57,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.home_button.clicked.connect(lambda: self.stackedWidget_2.setCurrentIndex(0))
         self.settings_button.clicked.connect(lambda: self.stackedWidget_2.setCurrentIndex(1))
         self.logout_button.clicked.connect(self.logging_out)  # lambda needs to add bracket after function name
-        self.logs_button.clicked.connect(self.open_log_folder)
         self.home_button.clicked.connect(lambda: self.page_indicator.move(0, self.home_button.pos().y()))
         self.settings_button.clicked.connect(lambda: self.page_indicator.move(0, self.settings_button.pos().y()))
         self.exit_button.clicked.connect(self.close)
+        self.logs_button.clicked.connect(open_log_folder)
 
         # Time
         # Create a timer to update the label every second
@@ -206,13 +215,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             delete_email(conn, username=self.current_username.text())
             self.email_address_area_4.setText("")
 
-    def open_log_folder(self):
-        log_folder_path = r"C:\Aegis IDS\Log Files"
-
-        if not os.path.exists(log_folder_path):
-            os.makedirs(log_folder_path)
-
-        subprocess.Popen(f'explorer "{log_folder_path}"')
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
