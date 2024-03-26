@@ -1948,4 +1948,3 @@ class Ui_MainWindow(object):
         self.error_text_2.setText(QCoreApplication.translate("MainWindow", u"Error", None))
         self.cancel_error_popup_2.setText("")
     # retranslateUi
-
